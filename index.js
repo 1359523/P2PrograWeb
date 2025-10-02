@@ -1,6 +1,6 @@
 // index.js
 const express = require("express");
-const errorHandler = require("./middlewares/errorHandler");
+const errorHandler = require("./middleware/errorHandler");
 const librosRoutes = require("./routes/libros");
 
 const app = express();
