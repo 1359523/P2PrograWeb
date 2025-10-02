@@ -1,4 +1,3 @@
-// routes/libros.js
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -7,9 +6,8 @@ const { v4: uuidv4, validate: uuidValidate } = require("uuid");
 const router = express.Router();
 const dataPath = path.join(__dirname, "../data/libros_1000.json");
 
-// Helpers de datos
 function leerLibros() {
-  // Si falla la lectura, lanzamos para que la ruta responda 500 (estado esperado del #1)
+  // Si falla la lectura, lla ruta responde 500
   const raw = fs.readFileSync(dataPath, "utf-8");
   return JSON.parse(raw);
 }
