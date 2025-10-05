@@ -64,50 +64,61 @@ router.get("/:id", (req, res, next) => {
  */
 router.post("/", (req, res, next) => {
   try {
-    const { title, author, year } = req.body;
+    let { title, author, year, id } = req.body;
 
-    // Validaciones mínimas: title y author requeridos
-    if (!title || !author) {
-      return res
-        .status(400)
-        .json({ error: "Faltan campos obligatorios: title y author" }); // 400
+    // No permitir que el cliente fije el id
+    if (id) {
+      return res.status(400).json({ error: "No envíes 'id' en el body" });
     }
 
-    // Validación de year (si viene)
+    if (!title || !author) {
+      return res.status(400).json({ error: "Faltan title y/o author" });
+    }
+
+    // Normalizar para validar correctamente
+    title = String(title).trim();
+    author = String(author).trim();
+
+    if (title.length < 2 || title.length > 100) {
+      return res.status(400).json({ error: "title debe tener 2–100 chars" });
+    }
+    if (author.length < 5) {
+      return res.status(400).json({ error: "author debe tener al menos 5 chars" });
+    }
+
+    // Validación year si viene
     if (year !== undefined) {
-      const num = Number(year);
-      if (!Number.isInteger(num) || num < 0) {
-        return res.status(400).json({ error: "year inválido" }); // 400
+      const y = Number(year);
+      const current = new Date().getFullYear();
+      if (!Number.isInteger(y) || y < 1900 || y > current) {
+        return res.status(400).json({ error: "year inválido" });
       }
+      year = y;
     }
 
     const libros = leerLibros();
 
-    // 409 (opcional): duplicado por (title + year)
+    // Evitar duplicados (title + year) – normalizando
     if (
       year !== undefined &&
-      libros.some((l) => l.title === title && l.year === year)
+      libros.some(l =>
+        String(l.title).trim().toLowerCase() === title.toLowerCase() &&
+        Number(l.year) === Number(year)
+      )
     ) {
-      return res
-        .status(409)
-        .json({ error: "Ya existe un libro con el mismo título y año" }); // 409
+      return res.status(409).json({ error: "Duplicado (mismo title y year)" });
     }
 
-    const nuevo = {
-      id: uuidv4(),
-      title,
-      author,
-      ...(year !== undefined ? { year: Number(year) } : {})
-    };
-
+    const nuevo = { id: uuidv4(), title, author, ...(year !== undefined ? { year } : {}) };
     libros.push(nuevo);
     escribirLibros(libros);
 
-    return res.status(201).json(nuevo); // 201 Created
+    return res.status(201).json(nuevo); // ✅ return
   } catch (e) {
-    return next({ status: 500, message: "Error al crear libro" }); // Paracaídas 500
+    return next({ status: 500, message: "Error al crear libro" });
   }
 });
+
 
 /**
  * 4) DELETE /api/libros/:id
@@ -118,21 +129,24 @@ router.post("/", (req, res, next) => {
 router.delete("/:id", (req, res, next) => {
   const { id } = req.params;
   if (!uuidValidate(id)) {
-    return res.status(400).json({ error: "Id inválido" }); // 400
+    return res.status(400).json({ error: "Id inválido" }); // ✅ return
   }
 
   try {
     const libros = leerLibros();
-    const idx = libros.findIndex((l) => l.id === id);
+    const idx = libros.findIndex(l => l.id === id);
+
     if (idx === -1) {
-      return res.status(404).json({ error: "Libro no existe" }); // 404
+      return res.status(404).json({ error: "Libro no existe" }); // ✅ return
     }
+
     libros.splice(idx, 1);
     escribirLibros(libros);
-    return res.status(200).json({ message: "Libro eliminado correctamente" }); // 200
+    return res.status(200).json({ message: "Libro eliminado correctamente" }); // ✅ return
   } catch (e) {
-    return next({ status: 500, message: "Error al eliminar libro" }); // Paracaídas 500
+    return next({ status: 500, message: "Error al eliminar libro" });
   }
 });
+
 
 module.exports = router;
