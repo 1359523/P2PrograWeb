@@ -113,7 +113,7 @@ router.post("/", (req, res, next) => {
     libros.push(nuevo);
     escribirLibros(libros);
 
-    return res.status(201).json(nuevo); // ✅ return
+    return res.status(201).json(nuevo); 
   } catch (e) {
     return next({ status: 500, message: "Error al crear libro" });
   }
@@ -129,7 +129,7 @@ router.post("/", (req, res, next) => {
 router.delete("/:id", (req, res, next) => {
   const { id } = req.params;
   if (!uuidValidate(id)) {
-    return res.status(400).json({ error: "Id inválido" }); // ✅ return
+    return res.status(400).json({ error: "Id inválido" });
   }
 
   try {
@@ -137,12 +137,12 @@ router.delete("/:id", (req, res, next) => {
     const idx = libros.findIndex(l => l.id === id);
 
     if (idx === -1) {
-      return res.status(404).json({ error: "Libro no existe" }); // ✅ return
+      return res.status(404).json({ error: "Libro no existe" }); 
     }
 
     libros.splice(idx, 1);
     escribirLibros(libros);
-    return res.status(200).json({ message: "Libro eliminado correctamente" }); // ✅ return
+    return res.status(200).json({ message: "Libro eliminado correctamente" }); 
   } catch (e) {
     return next({ status: 500, message: "Error al eliminar libro" });
   }
